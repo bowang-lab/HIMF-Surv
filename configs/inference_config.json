@@ -1,0 +1,14 @@
+{
+  "checkpoint_path": "checkpoints/fold_1_best_val_cindex.ckpt",
+  "wsi_feature_dir": "/path/to/wsi/features",
+  "mri_feature_dir": "/path/to/mri/features",
+  "clinical_feature_dir": "/path/to/clinical/features",
+  "output_file": "results/inference_results.json",
+  "batch_size": 8,
+  "device": "auto",
+  "wsi_feature_dim": 2048,
+  "mri_feature_dim": 4096,
+  "clinical_feature_dim": 22,
+  "num_time_bins": 15
+}
+

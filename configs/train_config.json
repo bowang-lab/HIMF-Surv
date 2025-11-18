@@ -1,4 +1,9 @@
 {
+  "wsi_feature_dir": "/path/to/wsi/features",
+  "mri_feature_dir": "/path/to/mri/features",
+  "clinical_feature_dir": "/path/to/clinical/features",
+  "labels_file": "data/labels.csv",
+  "output_file": "results/train_results.json",
   "wsi_feature_dim": 2048,
   "mri_feature_dim": 4096,
   "clinical_feature_dim": 22,
@@ -11,6 +16,5 @@
   "learning_rate": 0.0001,
   "weight_decay": 0.01,
   "wandb_project": "HIMF-Surv",
-  "wandb_run_name": "initial run",
-  "labels_file": "data/labels.csv"
+  "wandb_run_name": "initial run"
 }

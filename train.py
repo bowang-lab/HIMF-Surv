@@ -54,16 +54,8 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='HIMF-Surv: Hierarchical Intra- and Inter-Modality Fusion for Multimodal Survival Prediction in Prostate Cancer'
     )
-    parser.add_argument('--config', type=str, default='configs/default.json',
+    parser.add_argument('--config', type=str, default='configs/train_config.json',
                         help='Path to config JSON file')
-    parser.add_argument('--wsi-feature-dir', type=str, required=True,
-                        help='Directory containing WSI aggregated feature files')
-    parser.add_argument('--mri-feature-dir', type=str, required=True,
-                        help='Directory containing MRI aggregated feature files')
-    parser.add_argument('--clinical-feature-dir', type=str, required=True,
-                        help='Directory containing clinical embedding feature files')
-    parser.add_argument('--labels-file', type=str, default='data/labels.csv',
-                        help='Path to CSV file with patient labels and fold assignments')
     return parser.parse_args()
 
 def load_config(config_path: str) -> dict:
@@ -90,11 +82,12 @@ def main():
         logger.error(f"Config file not found: {e}")
         return
     
-    # Override config with command line arguments
-    config["wsi_feature_dir"] = args.wsi_feature_dir
-    config["mri_feature_dir"] = args.mri_feature_dir
-    config["clinical_feature_dir"] = args.clinical_feature_dir
-    config["labels_file"] = args.labels_file
+    # Validate required config keys
+    required_keys = ['wsi_feature_dir', 'mri_feature_dir', 'clinical_feature_dir', 'labels_file']
+    for key in required_keys:
+        if key not in config:
+            logger.error(f"Required config key '{key}' not found in config file")
+            return
     
     # Load data with folds
     try:
@@ -140,9 +133,10 @@ def main():
     
     logger.info(f"{num_folds}-fold cross-validation complete.")
     
-    save_results(all_results, config, logger)
+    output_file = config.get('output_file', 'results/train_results.json')
+    save_results(all_results, config, logger, output_file)
 
-def save_results(all_results, config, logger):
+def save_results(all_results, config, logger, output_file_path: str = 'results/train_results.json'):
     """Calculate statistics and save results to JSON."""
     val_c_indices = [r['best_val_c_index'] for r in all_results if r['best_val_c_index'] is not None]
     
@@ -164,7 +158,7 @@ def save_results(all_results, config, logger):
         'individual_results': all_results
     }
     
-    output_file = Path('results/results.json')
+    output_file = Path(output_file_path)
     output_file.parent.mkdir(parents=True, exist_ok=True)
     with open(output_file, 'w') as f:
         json.dump(results, f, indent=2)
