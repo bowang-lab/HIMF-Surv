@@ -12,7 +12,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 
-from model import HIMFSurvLightningModule
+from model import HIMFSurvLightningModule, concordance_index
 from dataset import HIMFSurvDataset, custom_collate_fn
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -52,11 +52,9 @@ def load_model_from_checkpoint(checkpoint_path: str, config: dict) -> HIMFSurvLi
 
 
 def predict_batch(model: HIMFSurvLightningModule, patient_ids: list, config: dict,
-                 batch_size: int = 8) -> list:
+                 labels_df: pd.DataFrame, batch_size: int = 8) -> list:
     """Predict survival for multiple patients."""
-    # Create empty DataFrame for dataset (labels not needed for inference)
-    empty_labels_df = pd.DataFrame(columns=['patient_id', 'time_to_follow-up/BCR', 'BCR', 'fold'])
-    dataset = HIMFSurvDataset([str(pid) for pid in patient_ids], config, empty_labels_df)
+    dataset = HIMFSurvDataset([str(pid) for pid in patient_ids], config, labels_df)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False,
                            collate_fn=custom_collate_fn, num_workers=2, pin_memory=False)
     
@@ -121,12 +119,20 @@ def main():
     
     # Validate required config keys
     required_keys = ['checkpoint_path', 'wsi_feature_dir', 'mri_feature_dir', 
-                     'clinical_feature_dir', 'wsi_feature_dim',
+                     'clinical_feature_dir', 'labels_file', 'wsi_feature_dim',
                      'mri_feature_dim', 'clinical_feature_dim', 'num_time_bins']
     for key in required_keys:
         if key not in config:
             logger.error(f"Required config key '{key}' not found in config file")
             return
+    
+    # Load labels file
+    labels_file = config['labels_file']
+    if not Path(labels_file).exists():
+        logger.error(f"Labels file not found: {labels_file}")
+        return
+    labels_df = pd.read_csv(labels_file)
+    logger.info(f"Loaded labels from: {labels_file} ({len(labels_df)} patients)")
     
     # Set device
     device_str = config.get('device', 'auto')
@@ -147,51 +153,66 @@ def main():
     model = load_model_from_checkpoint(checkpoint_path, config)
     model = model.to(device)
     
-    # Find patient IDs from feature directories
-    wsi_dir = Path(config['wsi_feature_dir'])
-    mri_dir = Path(config['mri_feature_dir'])
-    clinical_dir = Path(config['clinical_feature_dir'])
-    
-    # Extract patient IDs from WSI files
-    wsi_files = list(wsi_dir.glob("*_*_agg_layers.npy"))
-    wsi_patient_ids = set()
-    for f in wsi_files:
-        patient_id = f.stem.split('_')[0]
-        wsi_patient_ids.add(patient_id)
-    
-    # Extract patient IDs from MRI files
-    mri_files = list(mri_dir.glob("*_*_agg_layers.npy"))
-    mri_patient_ids = set()
-    for f in mri_files:
-        patient_id = f.stem.split('_')[0]
-        mri_patient_ids.add(patient_id)
-    
-    # Extract patient IDs from clinical files
-    clinical_files = list(clinical_dir.glob("*_embedding.npy"))
-    clinical_patient_ids = set()
-    for f in clinical_files:
-        patient_id = f.stem.replace('_embedding', '')
-        clinical_patient_ids.add(patient_id)
-
-    patient_ids = sorted(list(wsi_patient_ids & mri_patient_ids & clinical_patient_ids))
-    logger.info(f"Found {len(patient_ids)} patients with all three modalities")
+    # Get patient IDs from labels file
+    patient_ids = sorted([str(pid) for pid in labels_df['patient_id'].unique()])
+    logger.info(f"Found {len(patient_ids)} patients in labels file")
     
     # Perform inference
     logger.info("Starting inference...")
     batch_size = config.get('batch_size', 8)
-    results = predict_batch(model, patient_ids, config, batch_size)
+    results = predict_batch(model, patient_ids, config, labels_df, batch_size)
     
     # Filter out None results
     results = [r for r in results if r is not None]
     logger.info(f"Inference complete. Predicted for {len(results)} patients")
+    
+    # Calculate C-index if ground truth labels are available
+    c_index_info = None
+    if len(results) > 0 and 'time_to_follow-up/BCR' in labels_df.columns and 'BCR' in labels_df.columns:
+        # Create a mapping from patient_id to ground truth
+        labels_df_indexed = labels_df.set_index('patient_id')
+        
+        # Extract ground truth and predicted scores
+        event_times = []
+        event_observed = []
+        predicted_scores = []
+        
+        for result in results:
+            patient_id = int(result['patient_id'])
+            if patient_id in labels_df_indexed.index:
+                label_info = labels_df_indexed.loc[patient_id]
+                event_times.append(float(label_info['time_to_follow-up/BCR']))
+                event_observed.append(float(label_info['BCR']))
+                predicted_scores.append(result['risk'])
+        
+        if len(event_times) > 0 and sum(event_observed) > 0:  # Need at least one event
+            c_index = concordance_index(
+                event_times=torch.tensor(event_times),
+                predicted_scores=torch.tensor(predicted_scores),
+                event_observed=torch.tensor(event_observed)
+            )
+            logger.info(f"C-index: {c_index:.4f} (calculated on {len(event_times)} patients, {int(sum(event_observed))} events)")
+            c_index_info = {
+                'c_index': float(c_index),
+                'num_patients': len(event_times),
+                'num_events': int(sum(event_observed))
+            }
+        else:
+            logger.warning("Cannot calculate C-index: insufficient events or no matching patients")
+    else:
+        logger.info("C-index not calculated: ground truth labels not available or no results")
     
     # Save results
     output_file = config.get('output_file', 'results/inference_results.json')
     output_path = Path(output_file)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
+    output_data = results.copy()
+    if c_index_info is not None:
+        output_data.insert(0, c_index_info)
+    
     with open(output_path, 'w') as f:
-        json.dump(results, f, indent=2)
+        json.dump(output_data, f, indent=2)
     
     logger.info(f"Predictions saved to: {output_path}")
 

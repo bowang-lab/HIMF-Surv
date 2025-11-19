@@ -126,7 +126,7 @@ class HIMFSurv(nn.Module):
         
         self.num_time_bins = num_time_bins
 
-        self.abmil = ABMIL(
+        self.abmil_wsi = ABMIL(
             input_dim=wsi_feature_dim, 
             hidden_dim=128
         )
@@ -158,7 +158,7 @@ class HIMFSurv(nn.Module):
         self.prediction_head = MLPPredictionHead(
             input_dim=1536,
             num_time_bins=num_time_bins,
-            hidden_dim=128,
+            hidden_dim=64,
         )
 
     def forward(self, batch: tp.Dict[str, tp.Any]) -> Tensor:
@@ -172,7 +172,7 @@ class HIMFSurv(nn.Module):
                 wsi_feat = wsi_feat.to(device).float()  # (N, G, D)
                 N = wsi_feat.shape[0]
                 wsi_flat = wsi_feat.reshape(N, -1)  # (N, G*D)
-                patient_feature = self.abmil(wsi_flat)  # (G*D,)
+                patient_feature = self.abmil_wsi(wsi_flat)  # (G*D,)
                 wsi_patient_features.append(patient_feature)
             wsi_tensor = torch.stack(wsi_patient_features)  # (B, G*D)
             projected_tokens['wsi'] = self.projectors['wsi'](wsi_tensor)

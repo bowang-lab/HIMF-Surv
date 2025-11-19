@@ -3,6 +3,7 @@
   "wsi_feature_dir": "/path/to/wsi/features",
   "mri_feature_dir": "/path/to/mri/features",
   "clinical_feature_dir": "/path/to/clinical/features",
+  "labels_file": "data/inference_labels.csv",
   "output_file": "results/inference_results.json",
   "batch_size": 8,
   "device": "auto",
