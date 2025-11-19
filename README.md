@@ -269,8 +269,8 @@ If C-index is calculated, the first element contains:
 
 Each subsequent element contains prediction results for a patient:
 - `patient_id`: Patient identifier
-- `risk`: Predicted risk score (higher = higher risk)
-- `expected_time`: Expected survival time in months
+- `risk`: Predicted risk score
+- `expected_time`: Expected survival time
 - `survival_curve`: Survival probabilities for each time bin (list of floats)
 - `hazards`: Hazard probabilities for each time bin (list of floats)
 
