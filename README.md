@@ -47,7 +47,7 @@ task1/
         └── <patient_id>/
             ├── <patient_id>_<scan_id>_t2w.mha
             ├── <patient_id>_<scan_id>_adc.mha
-            └── <patient_id>_<scan_id>_mask.mha (optional)
+            └── <patient_id>_<scan_id>_mask.mha
 ```
 
 For feature extraction scripts, you can reference the paths as:
@@ -85,7 +85,7 @@ python feature_extractors/wsi.py \
     --num_workers_aggregate 4
 ```
 
-Output files:
+**Output files:**
 - Raw features: `{wsi_id}_all_layers.npy` in `raw_feature_dir` (shape: `(N, L, D)` where N is number of patches, L is number of layers, D is feature dimension)
 - Aggregated features: `{wsi_id}_agg_layers.npy` in `aggregated_feature_dir` (shape: `(N, G, D)` where N is number of patches, G is number of groups (2), D is feature dimension)
 
@@ -130,7 +130,7 @@ python feature_extractors/mri.py \
     --num_workers_aggregate 4
 ```
 
-Output files:
+**Output files:**
 - Raw features: `{mri_id}_all_layers.npy` in `raw_feature_dir` (shape: `(L, D)` where L is number of layers, D is feature dimension)
 - Aggregated features: `{mri_id}_agg_layers.npy` in `aggregated_feature_dir` (shape: `(G, D)` where G is number of groups (2), D is feature dimension)
 
@@ -151,7 +151,7 @@ python feature_extractors/clinical.py \
     --output_dir /path/to/clinical/embeddings
 ```
 
-Output files:
+**Output files:**
 - Clinical embeddings: `{patient_id}_embedding.npy` in `output_dir` (shape: `(22,)`)
 
 ## Training
