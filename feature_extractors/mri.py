@@ -17,7 +17,7 @@ from torch.nn import functional as F
 from tqdm import tqdm
 import SimpleITK as sitk
 
-from model.MRI_PTCa import myCNNViT_MM
+from feature_extractors.model.MRI_PTPCa import myCNNViT_MM
 
 logger = logging.getLogger(__name__)
 
