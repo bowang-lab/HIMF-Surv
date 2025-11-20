@@ -63,6 +63,21 @@ Extract WSI features using the UNI model. The extraction process consists of two
 1. Extract all intermediate layer features from the UNI model
 2. Aggregate features using layer configuration [0.5, 0.75, 1.0] with group_mean aggregation
 
+**Prerequisites:**
+
+Before running WSI feature extraction, you must log in to HuggingFace to access the UNI model. Choose one of the following methods:
+
+```bash
+# Method 1: Use HuggingFace CLI (recommended)
+huggingface-cli login
+
+# Method 2: Set environment variable
+export HF_TOKEN=your_token_here
+
+# Method 3: Use Python
+python -c "from huggingface_hub import login; login()"
+```
+
 **Required arguments:**
 - `--wsi_dir`: Directory containing WSI data files (expected structure: `wsi_dir/patient_id/patient_id_scan_id.tif`, `patient_id_scan_id_tissue.tif`)
 - `--raw_feature_dir`: Directory to save raw layer features from step 1
