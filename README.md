@@ -171,6 +171,21 @@ python feature_extractors/clinical.py \
 
 ## Training
 
+**Prerequisites:**
+
+If you want to use Weights & Biases (wandb) for experiment tracking, you must log in first. Choose one of the following methods:
+
+```bash
+# Method 1: Use wandb CLI (recommended)
+wandb login
+
+# Method 2: Set environment variable
+export WANDB_API_KEY=your_api_key_here
+
+# Method 3: Use Python
+python -c "import wandb; wandb.login()"
+```
+
 **Configuration:**
 
 All training settings are configured via a JSON config file. Create or modify `configs/train_config.json` with your paths and hyperparameters.
