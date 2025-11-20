@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class MRI_FeatureExtractor(pydantic.BaseModel):
     """
-    This class handles loading, preprocessing, and feature extraction from MRI data using the MRI-PTCa model.
+    This class handles loading, preprocessing, and feature extraction from MRI data using the MRI-PTPCa model.
     """
     name: tp.Literal["MRI_FeatureExtractor"] = "MRI_FeatureExtractor"
     device: tp.Literal["auto", "cpu", "cuda"] = "auto"
@@ -462,7 +462,7 @@ def main():
     """
     import argparse
     
-    parser = argparse.ArgumentParser(description="Extract MRI features using MRI-PTCa")
+    parser = argparse.ArgumentParser(description="Extract MRI features using MRI-PTPCa")
     parser.add_argument("--mri_dir", type=str, required=True,
                         help="Directory containing MRI data files")
     parser.add_argument("--t2_model_path", type=str, default=None,
