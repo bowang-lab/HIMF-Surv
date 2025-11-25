@@ -15,3 +15,5 @@ transformers>=4.30.0
 pytorch-lightning>=2.0.0
 wandb>=0.15.0
 x-transformers>=1.0.0
+matplotlib>=3.7.0
+lifelines>=0.27.0
