@@ -106,13 +106,13 @@ python feature_extractors/wsi.py \
 
 ### mpMRI Feature Extraction
 
-Extract mpMRI features using the MRI-PTCa model. The extraction process consists of two steps:
+Extract mpMRI features using the MRI-PTPCa model. The extraction process consists of two steps:
 1. Extract all intermediate layer features from the ViT model
 2. Aggregate features using layer configuration [0.5, 0.75, 1.0] with group_mean aggregation
 
 **Pretrained weights:**
 
-Pretrained model weights for MRI-PTCa can be downloaded from the [original repository](https://github.com/StandWisdom/MRI-based-Predicted-Transformer-for-Prostate-cancer/tree/main/pretrained_weights). You will need:
+Pretrained model weights for MRI-PTPCa can be downloaded from the [original repository](https://github.com/StandWisdom/MRI-based-Predicted-Transformer-for-Prostate-cancer/tree/main/pretrained_weights). You will need:
 - T2 extractor model weights (`t2_model.pth`)
 - ADC extractor model weights (`adc_model.pth`)
 - ViT fusion model weights (`vit_model.pth`)
