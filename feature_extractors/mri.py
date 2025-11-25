@@ -25,11 +25,9 @@ from vit_pytorch import SimpleViT
 logger = logging.getLogger(__name__)
 
 
-#############
-# Classes imported from MRI_PTPCa.py
-# Original source: https://github.com/StandWisdom/MRI-based-Predicted-Transformer-for-Prostate-cancer.git
-#############
-
+#########################################################
+############ Classes imported from MRI_PTPCa ############
+#########################################################
 
 class vision_net(nn.Module):
     """
@@ -194,11 +192,9 @@ class myCNNViT_MM(nn.Module):
         out_MM_vit = self.myViT_MM(x012)  
         return [out_MM_vit, out_MM]
 
-
-#############
-# End of classes imported from MRI_PTPCa.py
-#############
-
+#########################################################
+#########################################################
+#########################################################
 
 class MRI_FeatureExtractor(pydantic.BaseModel):
     """
